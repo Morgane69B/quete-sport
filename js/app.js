@@ -435,16 +435,9 @@
 
   // ---------- Écran Boutique ----------
   function itemPreview(it) {
-    if (it.slot === 'arme') return `<svg viewBox="-62 -98 124 124" class="wprev">${weaponOnly(it)}</svg>`;
+    if (it.slot === 'arme') return Hero.weapon(it);
     if (it.slot === 'tenue') return Hero.render(S.hero.look, itemById[S.equip.arme], it);
     return `<span class="emo">${it.emoji}</span>`;
-  }
-  function weaponOnly(it) {
-    // réutilise le rendu du héros : extrait le groupe de l'arme
-    const svg = Hero.render(S.hero.look, it, itemById['o_tunique']);
-    const m = svg.match(/<g transform="translate\(34\.5 98\)">([\s\S]*?)<\/g><circle cx="34.5"/);
-    const defs = svg.match(/<filter id="glow"[\s\S]*?<\/filter>/);
-    return (defs ? `<defs>${defs[0]}</defs>` : '') + (m ? `<g transform="rotate(40 0 -36)">${m[1]}</g>` : '');
   }
   function viewShop() {
     let h = `<div class="page-h"><h2>Boutique</h2><p class="muted">Dépense ton XP pour équiper ${g('ton héroïne', 'ton héros')}. Chaque objet donne un bonus d’XP.</p></div>`;

@@ -73,14 +73,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--cc, var(--accent)), var(--gold)); border-radius: 9px; transition: width .6s; }
 
 /* Scène du héros */
-.stage { position: relative; height: 300px; margin: 10px 0 4px; border-radius: 24px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); cursor: pointer; }
+.stage { position: relative; height: 330px; margin: 10px 0 4px; border-radius: 24px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); cursor: pointer; }
 .stage-sky { position: absolute; inset: 0; background: linear-gradient(180deg, var(--sky1), var(--sky2)); }
 .stage-sky::before { content: ''; position: absolute; inset: 0; background: radial-gradient(1.5px 1.5px at 20% 20%, #fff8, transparent), radial-gradient(1.5px 1.5px at 70% 15%, #fff9, transparent), radial-gradient(1px 1px at 40% 35%, #fff7, transparent), radial-gradient(1.5px 1.5px at 85% 40%, #fff6, transparent), radial-gradient(1px 1px at 10% 45%, #fff6, transparent); }
 [data-theme="sombre"] .stage-sky::after { content: ''; position: absolute; width: 46px; height: 46px; right: 26px; top: 22px; border-radius: 50%; background: #fdf6d8; box-shadow: 0 0 30px 8px #fdf6d855; }
 [data-theme="colore"] .stage-sky::after { content: ''; position: absolute; width: 56px; height: 56px; right: 24px; top: 20px; border-radius: 50%; background: #ffd43b; box-shadow: 0 0 40px 12px #ffd43b88; }
 [data-theme="medieval"] .stage-sky::after { content: '🏰'; position: absolute; left: 16px; top: 18px; font-size: 44px; opacity: .5; filter: sepia(.6); }
 .stage-ground { position: absolute; left: -10%; right: -10%; bottom: -40px; height: 110px; border-radius: 50% 50% 0 0; background: linear-gradient(180deg, var(--ground), var(--ground2)); }
-.stage-hero { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: 200px; height: 283px; animation: breathe 4s ease-in-out infinite; }
+.stage-hero { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: 186px; height: 310px; animation: breathe 4s ease-in-out infinite; }
 .hero-svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .comp { position: absolute; right: 6%; bottom: 22px; font-size: 76px; line-height: 1; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .35)); animation: bob 3.2s ease-in-out infinite; }
 .pet { position: absolute; left: 8%; bottom: 30px; font-size: 42px; line-height: 1; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .3)); animation: bob 2.4s ease-in-out infinite reverse; }
@@ -345,7 +345,7 @@ textarea.input { resize: vertical; }
 .opt > span:first-child { font-size: 28px; } .opt small { display: block; color: var(--muted); font-size: .8rem; }
 .opt.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
 .look-ed { display: flex; gap: 12px; align-items: flex-start; }
-.look-prev { width: 130px; flex: none; height: 184px; border-radius: 18px; background: radial-gradient(circle at 50% 60%, var(--card2), var(--card)); border: 1px solid var(--border); }
+.look-prev { width: 120px; flex: none; height: 200px; border-radius: 18px; background: radial-gradient(circle at 50% 60%, var(--card2), var(--card)); border: 1px solid var(--border); }
 .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatches button { width: 32px; height: 32px; border-radius: 50%; border: 3px solid transparent; box-shadow: 0 0 0 1px var(--border); }
 .swatches button.on { border-color: var(--card); box-shadow: 0 0 0 3px var(--accent); }
