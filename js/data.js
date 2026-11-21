@@ -1,0 +1,297 @@
+// Données du jeu : exercices, classes, boutique, cartes, boss, quêtes
+(function () {
+  const ST = (o = {}) => Object.assign({ p: [50, 60], t: 0, h: [[53, 60], [51, 61]], f: [[52, 92], [48, 92]] }, o);
+  const HANG = (o = {}) => Object.assign({ p: [50, 57], t: -3, h: [[48, 11], [53, 11]], f: [[44, 85], [46, 86]] }, o);
+  const PU_HI = (o = {}) => Object.assign({ p: [48.8, 78], t: 64, h: [[69, 92], [67, 92]], f: [[20, 92], [21, 92]] }, o);
+  const PU_LO = (o = {}) => Object.assign({ p: [51.7, 87], t: 82, h: [[69, 92], [67, 92]], f: [[20, 92], [21, 92]], eb: [1, 1] }, o);
+
+  // cat : halteres | barre | corps | souplesse ; unit : reps | sec
+  // tags : servent aux bonus de classe ; stats : statistiques qui progressent
+  const EXERCISES = [
+    // ---------- Haltères ----------
+    { id: 'curl', name: 'Curl biceps', cat: 'halteres', unit: 'reps', tags: ['muscu', 'bras'], stats: ['force'], eq: ['db'],
+      tip: 'Coudes collés au corps, monte en expirant, redescends lentement sans balancer.',
+      poses: [ST({ h: [[53, 61], [51, 61]] }), ST({ h: [[58, 42], [57, 43]] })] },
+    { id: 'marteau', name: 'Curl marteau', cat: 'halteres', unit: 'reps', tags: ['muscu', 'bras'], stats: ['force'], eq: ['db'],
+      tip: 'Paumes face à face, comme si tu tenais un marteau. Garde les poignets droits.',
+      poses: [ST({ h: [[53, 61], [51, 61]] }), ST({ h: [[59, 43], [58, 44]] })], dur: 2.4 },
+    { id: 'militaire', name: 'Développé épaules', cat: 'halteres', unit: 'reps', tags: ['muscu', 'haut'], stats: ['force'], eq: ['db'],
+      tip: 'Abdos serrés, pousse les haltères au-dessus de la tête sans cambrer le dos.',
+      poses: [ST({ h: [[56, 36], [55, 37]] }), ST({ h: [[52, 12], [51, 12]] })] },
+    { id: 'frontales', name: 'Élévations frontales', cat: 'halteres', unit: 'reps', tags: ['muscu', 'haut'], stats: ['force', 'endurance'], eq: ['db'],
+      tip: 'Bras presque tendus, monte jusqu’à hauteur d’épaules, contrôle la descente.',
+      poses: [ST({ h: [[53, 61], [51, 61]] }), ST({ h: [[73, 39], [72, 40]] })] },
+    { id: 'triceps', name: 'Extension triceps', cat: 'halteres', unit: 'reps', tags: ['muscu', 'bras'], stats: ['force'], eq: ['db'],
+      tip: 'Haltère tenu à deux mains derrière la tête, coudes pointés vers le ciel.',
+      poses: [ST({ h: [[44, 27], [44, 27]] }), ST({ h: [[51, 12], [51, 12]] })] },
+    { id: 'rowing', name: 'Rowing penché', cat: 'halteres', unit: 'reps', tags: ['muscu', 'dos'], stats: ['force'], eq: ['db'],
+      tip: 'Dos plat, buste penché, tire les haltères vers le nombril en serrant les omoplates.',
+      poses: [{ p: [44, 60], t: 70, h: [[64, 76], [63, 76]], f: [[52, 92], [46, 92]] }, { p: [44, 60], t: 70, h: [[54, 64], [53, 64]], f: [[52, 92], [46, 92]] }] },
+    { id: 'goblet', name: 'Squat goblet', cat: 'halteres', unit: 'reps', tags: ['muscu', 'jambes'], stats: ['force', 'vitalite'], eq: ['db'],
+      tip: 'Haltère contre la poitrine, descends comme pour t’asseoir, talons au sol.',
+      poses: [ST({ h: [[57, 45], [56, 45]] }), { p: [41, 74], t: 30, h: [[61, 61], [60, 61]], f: [[52, 92], [49, 92]] }] },
+    { id: 'fentes_h', name: 'Fentes haltères', cat: 'halteres', unit: 'reps', tags: ['muscu', 'jambes'], stats: ['force', 'endurance'], eq: ['db'],
+      tip: 'Grand pas en avant, genou arrière vers le sol, buste bien droit.',
+      poses: [ST(), { p: [50, 74], t: 0, h: [[52, 76], [50, 76]], f: [[63, 92], [33, 92]] }] },
+    { id: 'rdl', name: 'Soulevé de terre roumain', cat: 'halteres', unit: 'reps', tags: ['muscu', 'jambes', 'dos'], stats: ['force'], eq: ['db'],
+      tip: 'Jambes presque tendues, pousse les fesses en arrière, dos plat. Sens l’étirement derrière les cuisses.',
+      poses: [ST({ h: [[53, 61], [51, 61]] }), { p: [42, 58], t: 80, h: [[62, 78], [61, 78]], f: [[50, 92], [48, 92]] }] },
+    { id: 'floorpress', name: 'Développé couché au sol', cat: 'halteres', unit: 'reps', tags: ['muscu', 'haut'], stats: ['force'], eq: ['db', 'mat'],
+      tip: 'Allongée sur le dos, coudes qui touchent le sol, pousse les haltères vers le plafond.',
+      poses: [{ p: [62, 87], t: -88, h: [[44, 79], [45, 79]], f: [[76, 92], [78, 92]], eb: [-1, -1] }, { p: [62, 87], t: -88, h: [[41, 62], [42, 62]], f: [[76, 92], [78, 92]], eb: [-1, -1] }] },
+    { id: 'hipthrust', name: 'Pont fessier lesté', cat: 'halteres', unit: 'reps', tags: ['muscu', 'jambes'], stats: ['force', 'vitalite'], eq: ['dbHip', 'mat'],
+      tip: 'Haltère posé sur les hanches, pousse le bassin vers le haut en serrant les fessiers.',
+      poses: [{ p: [48, 89], t: -85, h: [[47, 85], [47, 85]], f: [[64, 92], [66, 92]] }, { p: [50, 74], t: -117, h: [[49, 70], [49, 70]], f: [[64, 92], [66, 92]] }] },
+
+    // ---------- Barre de traction ----------
+    { id: 'tractions', name: 'Tractions pronation', cat: 'barre', unit: 'reps', tags: ['muscu', 'traction', 'dos'], stats: ['force', 'agilite'], eq: ['bar'],
+      tip: 'Paumes vers l’avant, tire jusqu’au menton au-dessus de la barre, redescends bras tendus.',
+      poses: [HANG(), HANG({ p: [50, 39], f: [[44, 67], [46, 68]] })] },
+    { id: 'chinup', name: 'Tractions supination', cat: 'barre', unit: 'reps', tags: ['muscu', 'traction', 'bras'], stats: ['force', 'agilite'], eq: ['bar'],
+      tip: 'Paumes vers toi : les biceps aident davantage. Idéal pour progresser.',
+      poses: [HANG(), HANG({ p: [50, 40], f: [[44, 68], [46, 69]] })] },
+    { id: 'negatives', name: 'Tractions négatives', cat: 'barre', unit: 'reps', tags: ['muscu', 'traction'], stats: ['force', 'discipline'], eq: ['bar'],
+      tip: 'Monte avec une chaise, puis descends le plus lentement possible (3 à 5 secondes).',
+      poses: [HANG({ p: [50, 40], f: [[44, 68], [46, 69]] }), HANG()], dur: 4.5 },
+    { id: 'suspension', name: 'Suspension', cat: 'barre', unit: 'sec', tags: ['gainage', 'traction'], stats: ['endurance', 'force'], eq: ['bar'],
+      tip: 'Accroche-toi bras tendus et tiens. Renforce la poigne et décompresse le dos.',
+      poses: [HANG(), HANG({ p: [51, 57.5], f: [[46, 86], [47, 86]] })], dur: 3 },
+    { id: 'releves', name: 'Relevés de genoux', cat: 'barre', unit: 'reps', tags: ['gainage', 'abdos'], stats: ['endurance', 'agilite'], eq: ['bar'],
+      tip: 'Suspendue, monte les genoux vers la poitrine sans te balancer.',
+      poses: [HANG(), HANG({ f: [[63, 63], [62, 64]] })] },
+    { id: 'scapula', name: 'Tirage scapulaire', cat: 'barre', unit: 'reps', tags: ['muscu', 'traction'], stats: ['force'], eq: ['bar'],
+      tip: 'Bras tendus, abaisse juste les épaules pour te soulever de quelques centimètres.',
+      poses: [HANG(), HANG({ p: [50, 53.5], f: [[44, 81], [46, 82]] })], dur: 2 },
+
+    // ---------- Poids du corps ----------
+    { id: 'pompes', name: 'Pompes', cat: 'corps', unit: 'reps', tags: ['muscu', 'haut'], stats: ['force', 'endurance'], eq: ['mat'],
+      tip: 'Corps gainé comme une planche, mains sous les épaules, poitrine vers le sol.',
+      poses: [PU_HI(), PU_LO()] },
+    { id: 'pompes_g', name: 'Pompes sur les genoux', cat: 'corps', unit: 'reps', tags: ['muscu', 'haut'], stats: ['force'], eq: ['mat'],
+      tip: 'La version idéale pour débuter : genoux au sol, même alignement du dos.',
+      poses: [{ p: [57, 83], t: 55, h: [[75, 92], [73, 92]], f: [[30, 82], [31, 83]] }, { p: [59.5, 88.5], t: 78, h: [[75, 92], [73, 92]], f: [[31, 83], [32, 84]] }] },
+    { id: 'diamant', name: 'Pompes diamant', cat: 'corps', unit: 'reps', tags: ['muscu', 'bras'], stats: ['force'], eq: ['mat'],
+      tip: 'Mains rapprochées en losange sous la poitrine : les triceps travaillent fort.',
+      poses: [PU_HI({ h: [[70, 92], [69, 92]] }), PU_LO({ h: [[70, 92], [69, 92]] })] },
+    { id: 'squats', name: 'Squats', cat: 'corps', unit: 'reps', tags: ['cardio', 'jambes'], stats: ['endurance', 'vitalite'],
+      tip: 'Pieds largeur d’épaules, descends cuisses parallèles au sol, bras devant pour l’équilibre.',
+      poses: [ST(), { p: [41, 74], t: 30, h: [[70, 58], [69, 59]], f: [[52, 92], [49, 92]] }], dur: 2.2 },
+    { id: 'fentes', name: 'Fentes', cat: 'corps', unit: 'reps', tags: ['cardio', 'jambes'], stats: ['endurance', 'agilite'],
+      tip: 'Alterne les jambes. Le genou avant reste au-dessus de la cheville.',
+      poses: [ST(), { p: [50, 74], t: 0, h: [[55, 74], [53, 74]], f: [[63, 92], [33, 92]] }] },
+    { id: 'burpees', name: 'Burpees', cat: 'corps', unit: 'reps', tags: ['cardio'], stats: ['endurance', 'agilite', 'vitalite'], eq: ['mat'],
+      tip: 'Accroupie, planche, retour accroupie puis saut bras en l’air. Garde un rythme régulier.',
+      poses: [ST(), { p: [43, 77], t: 55, h: [[63, 92], [62, 92]], f: [[50, 92], [48, 92]] }, PU_HI(), { p: [43, 77], t: 55, h: [[63, 92], [62, 92]], f: [[50, 92], [48, 92]] }, ST({ p: [50, 53], h: [[53, 13], [51, 13]], f: [[51, 85], [49, 85]] })], dur: 3.6 },
+    { id: 'planche', name: 'Gainage planche', cat: 'corps', unit: 'sec', tags: ['gainage', 'abdos'], stats: ['endurance', 'discipline'], eq: ['mat'],
+      tip: 'Sur les avant-bras, corps aligné des épaules aux talons. Respire calmement.',
+      poses: [{ p: [51, 85], t: 78, h: [[81, 92], [80, 92]], f: [[20, 92], [21, 92]], eb: [-1, -1] }, { p: [51, 84.4], t: 78.5, h: [[81, 92], [80, 92]], f: [[20, 92], [21, 92]], eb: [-1, -1] }], dur: 3 },
+    { id: 'crunch', name: 'Crunchs', cat: 'corps', unit: 'reps', tags: ['gainage', 'abdos'], stats: ['endurance'], eq: ['mat'],
+      tip: 'Sur le dos, genoux pliés, enroule le haut du dos sans tirer sur la nuque.',
+      poses: [{ p: [52, 88], t: -88, h: [[26, 82], [26, 83]], f: [[70, 92], [72, 92]] }, { p: [52, 88], t: -58, h: [[30, 69], [30, 70]], f: [[70, 92], [72, 92]] }], dur: 2 },
+    { id: 'climbers', name: 'Mountain climbers', cat: 'corps', unit: 'reps', tags: ['cardio', 'abdos'], stats: ['endurance', 'agilite'], eq: ['mat'],
+      tip: 'En position de pompe, ramène les genoux vers la poitrine en alternant, vite.',
+      poses: [PU_HI({ f: [[20, 92], [50, 86]] }), PU_HI({ f: [[50, 86], [20, 92]] })], dur: 0.9 },
+    { id: 'pont', name: 'Pont fessier', cat: 'corps', unit: 'reps', tags: ['muscu', 'jambes'], stats: ['vitalite', 'endurance'], eq: ['mat'],
+      tip: 'Sur le dos, pieds à plat, monte le bassin et serre les fessiers 1 seconde en haut.',
+      poses: [{ p: [48, 89], t: -85, h: [[36, 92], [38, 92]], f: [[64, 92], [66, 92]] }, { p: [50, 74], t: -117, h: [[36, 92], [38, 92]], f: [[64, 92], [66, 92]] }] },
+    { id: 'dips', name: 'Dips sur chaise', cat: 'corps', unit: 'reps', tags: ['muscu', 'bras'], stats: ['force'], eq: ['chair'],
+      tip: 'Mains sur le bord de la chaise, descends en pliant les coudes vers l’arrière.',
+      poses: [{ p: [46, 64], t: -5, h: [[40, 64], [39, 64]], f: [[66, 92], [68, 92]] }, { p: [47, 77], t: -5, h: [[40, 64], [39, 64]], f: [[66, 92], [68, 92]] }] },
+    { id: 'jacks', name: 'Jumping jacks', cat: 'corps', unit: 'reps', tags: ['cardio'], stats: ['endurance', 'vitalite'],
+      tip: 'Saute en écartant bras et jambes, reviens. Parfait pour s’échauffer.',
+      poses: [ST(), ST({ p: [50, 56], h: [[51, 12], [49, 12]], f: [[54, 88], [46, 88]] })], dur: 1 },
+    { id: 'genoux', name: 'Montées de genoux', cat: 'corps', unit: 'reps', tags: ['cardio'], stats: ['endurance', 'agilite'],
+      tip: 'Course sur place en montant les genoux à hauteur de hanches. Bras actifs !',
+      poses: [ST({ p: [50, 59], h: [[44, 58], [60, 46]], f: [[60, 76], [49, 92]] }), ST({ p: [50, 59], h: [[60, 46], [44, 58]], f: [[49, 92], [60, 76]] })], dur: 0.8 },
+    { id: 'superman', name: 'Superman', cat: 'corps', unit: 'reps', tags: ['muscu', 'dos'], stats: ['vitalite', 'force'], eq: ['mat'],
+      tip: 'À plat ventre, décolle bras et jambes en même temps, regard vers le sol.',
+      poses: [{ p: [44, 86], t: 92, h: [[92, 88], [91, 88]], f: [[12, 90], [13, 91]] }, { p: [44, 86], t: 80, h: [[90, 74], [89, 75]], f: [[14, 80], [15, 81]] }] },
+    { id: 'chaise', name: 'Chaise contre le mur', cat: 'corps', unit: 'sec', tags: ['gainage', 'jambes'], stats: ['endurance', 'discipline'], eq: ['wall'],
+      tip: 'Dos au mur, cuisses parallèles au sol, genoux à 90°. Tiens bon !',
+      poses: [{ p: [32, 76], t: 0, h: [[44, 74], [43, 75]], f: [[49, 92], [47, 92]] }, { p: [32, 75.6], t: 0, h: [[44, 73.6], [43, 74.6]], f: [[49, 92], [47, 92]] }], dur: 3 },
+
+    // ---------- Souplesse ----------
+    { id: 'ischios', name: 'Étirement ischios', cat: 'souplesse', unit: 'sec', tags: ['souplesse'], stats: ['agilite', 'sagesse'],
+      tip: 'Jambes tendues, penche-toi doucement vers l’avant. Aucun à-coup, respire.',
+      poses: [{ p: [45, 60], t: 105, h: [[58, 84], [57, 85]], f: [[51, 92], [49, 92]] }, { p: [44, 60], t: 128, h: [[55, 91], [54, 91]], f: [[51, 92], [49, 92]] }], dur: 5 },
+    { id: 'chatvache', name: 'Chat-vache', cat: 'souplesse', unit: 'reps', tags: ['souplesse'], stats: ['agilite', 'sagesse'], eq: ['mat'],
+      tip: 'À quatre pattes : dos rond en expirant, dos creux en inspirant. Lentement.',
+      poses: [{ p: [44, 74], t: 95, h: [[68, 92], [66, 92]], f: [[28, 92], [29, 92]], ht: 45 }, { p: [44, 77], t: 92, h: [[68, 92], [66, 92]], f: [[28, 92], [29, 92]], ht: -35 }], dur: 4 },
+    { id: 'psoas', name: 'Étirement des hanches', cat: 'souplesse', unit: 'sec', tags: ['souplesse'], stats: ['agilite'], eq: ['mat'],
+      tip: 'Fente basse, genou arrière au sol, avance doucement le bassin. Change de côté.',
+      poses: [{ p: [47, 78], t: -4, h: [[62, 74], [61, 75]], f: [[66, 92], [22, 90]] }, { p: [51, 80], t: -8, h: [[63, 75], [62, 76]], f: [[66, 92], [22, 90]] }], dur: 5 },
+    { id: 'papillon', name: 'Papillon', cat: 'souplesse', unit: 'sec', tags: ['souplesse'], stats: ['agilite', 'sagesse'], eq: ['mat'],
+      tip: 'Assise, plantes de pieds collées, laisse les genoux descendre vers le sol.',
+      poses: [{ p: [42, 89], t: 8, h: [[58, 89], [57, 89]], f: [[58, 91], [57, 91]] }, { p: [42, 89], t: 35, h: [[59, 90], [58, 90]], f: [[58, 91], [57, 91]] }], dur: 4.5 },
+    { id: 'chien', name: 'Chien tête en bas', cat: 'souplesse', unit: 'sec', tags: ['souplesse'], stats: ['agilite', 'vitalite'], eq: ['mat'],
+      tip: 'En V inversé, pousse le sol avec les mains et descends les talons.',
+      poses: [{ p: [50, 63], t: 145, h: [[76, 92], [74, 92]], f: [[32, 91], [33, 91]] }, { p: [50, 61], t: 140, h: [[76, 92], [74, 92]], f: [[32, 92], [33, 92]] }], dur: 4 },
+    { id: 'quadri', name: 'Étirement quadriceps', cat: 'souplesse', unit: 'sec', tags: ['souplesse'], stats: ['agilite'],
+      tip: 'Debout, attrape ta cheville derrière toi, genoux serrés, bassin droit.',
+      poses: [ST({ h: [[44, 66], [66, 44]], f: [[44, 66], [50, 92]] }), ST({ h: [[43, 65], [67, 45]], f: [[43, 65], [50, 92]] })], dur: 4 },
+  ];
+
+  const CATS = {
+    halteres: { name: 'Haltères', icon: '🏋️' },
+    barre: { name: 'Barre de traction', icon: '🪜' },
+    corps: { name: 'Poids du corps', icon: '🤸' },
+    souplesse: { name: 'Souplesse', icon: '🧘' },
+  };
+
+  const STATS = {
+    force: { name: 'Force', icon: '💪', color: '#e5484d' },
+    endurance: { name: 'Endurance', icon: '🫀', color: '#f76b15' },
+    agilite: { name: 'Agilité', icon: '🪶', color: '#30a46c' },
+    vitalite: { name: 'Vitalité', icon: '🌿', color: '#12a594' },
+    discipline: { name: 'Discipline', icon: '🛡️', color: '#3e63dd' },
+    sagesse: { name: 'Sagesse', icon: '🔮', color: '#8e4ec6' },
+  };
+
+  // Classes = objectifs sportifs. bonus : multiplicateur d'XP selon les tags d'exercice
+  const CLASSES = [
+    { id: 'masse', goal: 'Prise de masse', f: 'Colosse', m: 'Colosse', icon: '🪨', color: '#b5651d', bonus: { muscu: 1.25 }, main: ['force', 'vitalite'],
+      desc: 'Bâtir du muscle, série après série. Bonus d’XP sur les exercices de musculation.',
+      titles: [['Apprentie', 'Apprenti'], ['Bâtisseuse', 'Bâtisseur'], ['Colosse de bronze', 'Colosse de bronze'], ['Colosse d’acier', 'Colosse d’acier'], ['Titane', 'Titan'], ['Légende de granit', 'Légende de granit']] },
+    { id: 'seche', goal: 'Sèche', f: 'Lame', m: 'Lame', icon: '🗡️', color: '#6b7280', bonus: { cardio: 1.2, gainage: 1.2, muscu: 1.1 }, main: ['endurance', 'agilite'],
+      desc: 'Affûter le corps comme une lame. Bonus sur le cardio et le gainage.',
+      titles: [['Novice', 'Novice'], ['Lame affûtée', 'Lame affûtée'], ['Ombre agile', 'Ombre agile'], ['Lame d’argent', 'Lame d’argent'], ['Lame de cristal', 'Lame de cristal'], ['Légende tranchante', 'Légende tranchante']] },
+    { id: 'force', goal: 'Force', f: 'Guerrière', m: 'Guerrier', icon: '⚔️', color: '#e5484d', bonus: { muscu: 1.2, traction: 1.3 }, main: ['force', 'discipline'],
+      desc: 'Devenir redoutablement forte. Gros bonus sur les tractions et la musculation.',
+      titles: [['Recrue', 'Recrue'], ['Combattante', 'Combattant'], ['Guerrière', 'Guerrier'], ['Championne', 'Champion'], ['Seigneure de guerre', 'Seigneur de guerre'], ['Légende invaincue', 'Légende invaincue']] },
+    { id: 'endurance', goal: 'Endurance', f: 'Rôdeuse', m: 'Rôdeur', icon: '🏹', color: '#f76b15', bonus: { cardio: 1.3, gainage: 1.15 }, main: ['endurance', 'vitalite'],
+      desc: 'Tenir plus longtemps que tout le monde. Bonus sur le cardio.',
+      titles: [['Éclaireuse', 'Éclaireur'], ['Pisteuse', 'Pisteur'], ['Rôdeuse', 'Rôdeur'], ['Rôdeuse des cimes', 'Rôdeur des cimes'], ['Infatigable', 'Infatigable'], ['Légende du vent', 'Légende du vent']] },
+    { id: 'forme', goal: 'Remise en forme', f: 'Aventurière', m: 'Aventurier', icon: '🧭', color: '#30a46c', bonus: { all: 1.12 }, main: ['vitalite', 'discipline'],
+      desc: 'Reprendre le chemin de la forme. Petit bonus sur tous les exercices.',
+      titles: [['Voyageuse', 'Voyageur'], ['Aventurière', 'Aventurier'], ['Exploratrice', 'Explorateur'], ['Héroïne', 'Héros'], ['Grande héroïne', 'Grand héros'], ['Légende vivante', 'Légende vivante']] },
+    { id: 'souplesse', goal: 'Souplesse', f: 'Maîtresse du souffle', m: 'Maître du souffle', icon: '🪷', color: '#8e4ec6', bonus: { souplesse: 1.4, gainage: 1.1 }, main: ['agilite', 'sagesse'],
+      desc: 'Un corps libre et délié. Gros bonus sur les étirements.',
+      titles: [['Disciple', 'Disciple'], ['Initiée', 'Initié'], ['Danseuse de lame', 'Danseur de lame'], ['Maîtresse du souffle', 'Maître du souffle'], ['Sage', 'Sage'], ['Légende fluide', 'Légende fluide']] },
+    { id: 'poids', goal: 'Perte de poids', f: 'Chasseresse', m: 'Chasseur', icon: '🦌', color: '#12a594', bonus: { cardio: 1.25, all: 1.05 }, main: ['endurance', 'vitalite'],
+      desc: 'Brûler et s’alléger, pas à pas. Bonus sur le cardio et les quêtes du quotidien.', questBonus: 1.25,
+      titles: [['Traqueuse', 'Traqueur'], ['Chasseresse', 'Chasseur'], ['Chasseresse agile', 'Chasseur agile'], ['Grande chasseresse', 'Grand chasseur'], ['Reine de la traque', 'Roi de la traque'], ['Légende sauvage', 'Légende sauvage']] },
+  ];
+
+  // Boutique. bonus = % d'XP supplémentaire
+  const ITEMS = [
+    // Armes
+    { id: 'w_baton', slot: 'arme', name: 'Bâton de marche', price: 0, bonus: 0, weapon: 'staff', color: '#8b5a2b', desc: 'Le fidèle compagnon des débuts.' },
+    { id: 'w_dague', slot: 'arme', name: 'Dague de bronze', price: 150, bonus: 1, weapon: 'dagger', color: '#cd7f32', desc: 'Légère et vive.' },
+    { id: 'w_epee', slot: 'arme', name: 'Épée courte', price: 300, bonus: 2, weapon: 'sword', color: '#c0c7d1', desc: 'Forgée pour les premières batailles.' },
+    { id: 'w_arc', slot: 'arme', name: 'Arc elfique', price: 500, bonus: 3, weapon: 'bow', color: '#6aa84f', desc: 'Taillé dans un bois de lune.' },
+    { id: 'w_hache', slot: 'arme', name: 'Hache de guerre', price: 800, bonus: 4, weapon: 'axe', color: '#9aa3ad', desc: 'Pour fendre les boss en deux.' },
+    { id: 'w_lance', slot: 'arme', name: 'Lance du dragon', price: 1200, bonus: 5, weapon: 'spear', color: '#d4a017', desc: 'Sa pointe garde la chaleur du dragon.' },
+    { id: 'w_marteau', slot: 'arme', name: 'Marteau runique', price: 1800, bonus: 6, weapon: 'hammer', color: '#5b8def', desc: 'Les runes s’allument à chaque série.' },
+    { id: 'w_lumiere', slot: 'arme', name: 'Épée de lumière', price: 3000, bonus: 8, weapon: 'sword', color: '#ffe066', glow: true, desc: 'Une lame qui brille de ta discipline.' },
+    // Tenues
+    { id: 'o_tunique', slot: 'tenue', name: 'Tunique d’aventure', price: 0, bonus: 0, outfit: { main: '#3b6ea5', trim: '#d9b26f', pants: '#4a3b2f', boots: '#5a3a22' }, desc: 'Simple, solide, prête pour la route.' },
+    { id: 'o_chasse', slot: 'tenue', name: 'Tenue de chasseresse', price: 200, bonus: 1, outfit: { main: '#3f7d4a', trim: '#a3c76b', pants: '#3b3a2a', boots: '#4b3621', hood: '#2f5e38' }, desc: 'Se fondre dans la forêt.' },
+    { id: 'o_cuir', slot: 'tenue', name: 'Armure de cuir', price: 400, bonus: 2, outfit: { main: '#7a4b2a', trim: '#c8925a', pants: '#3a2a1f', boots: '#2e1f14', straps: true }, desc: 'Souple et résistante.' },
+    { id: 'o_mage', slot: 'tenue', name: 'Robe de mage', price: 600, bonus: 3, outfit: { main: '#5b3a9e', trim: '#f2c94c', pants: '#3a2466', boots: '#2b1a4a', robe: true, cape: '#3a2466' }, desc: 'Brodée d’étoiles qui scintillent la nuit.' },
+    { id: 'o_mailles', slot: 'tenue', name: 'Cotte de mailles', price: 900, bonus: 4, outfit: { main: '#8d99a6', trim: '#4a5563', pants: '#3b4250', boots: '#2a2f38', chain: true, cape: '#8b1e2d' }, desc: 'Des milliers d’anneaux d’acier.' },
+    { id: 'o_chevalier', slot: 'tenue', name: 'Armure de chevalier', price: 1500, bonus: 5, outfit: { main: '#c3ccd6', trim: '#d4a017', pants: '#8d99a6', boots: '#6b7480', plate: true, cape: '#1f4e9e' }, desc: 'Plates polies et cape bleu roi.' },
+    { id: 'o_feu', slot: 'tenue', name: 'Armure de braise', price: 2500, bonus: 7, outfit: { main: '#9e2a1f', trim: '#ff9f1c', pants: '#4a1410', boots: '#2b0d0a', plate: true, cape: '#d9480f', ember: true }, desc: 'Forgée dans la gueule d’un volcan.' },
+    { id: 'o_royale', slot: 'tenue', name: 'Tenue royale', price: 4000, bonus: 9, outfit: { main: '#f4f0e6', trim: '#d4a017', pants: '#e8dcc0', boots: '#8b6b2e', robe: true, cape: '#7b1e3a', crown: true }, desc: 'Pour celle qui a conquis tous les boss.' },
+    // Familiers
+    { id: 'p_papillon', slot: 'familier', name: 'Papillon azur', price: 150, bonus: 1, emoji: '🦋', desc: 'Il virevolte autour de toi.' },
+    { id: 'p_lapin', slot: 'familier', name: 'Lapin des prés', price: 200, bonus: 1, emoji: '🐇', desc: 'Toujours en mouvement.' },
+    { id: 'p_chouette', slot: 'familier', name: 'Chouette sage', price: 250, bonus: 2, emoji: '🦉', desc: 'Elle veille sur tes nuits de récupération.' },
+    { id: 'p_chat', slot: 'familier', name: 'Chat noir', price: 250, bonus: 2, emoji: '🐈‍⬛', desc: 'Porte-bonheur, quoi qu’on en dise.' },
+    { id: 'p_herisson', slot: 'familier', name: 'Hérisson', price: 300, bonus: 2, emoji: '🦔', desc: 'Petit mais piquant.' },
+    { id: 'p_renard', slot: 'familier', name: 'Renard roux', price: 350, bonus: 3, emoji: '🦊', desc: 'Rusé et fidèle.' },
+    { id: 'p_salamandre', slot: 'familier', name: 'Salamandre', price: 400, bonus: 3, emoji: '🦎', desc: 'Elle adore la chaleur des efforts.' },
+    // Compagnons
+    { id: 'c_tortue', slot: 'compagnon', name: 'Tortue ancestrale', price: 900, bonus: 4, emoji: '🐢', desc: 'Lente, mais elle ne s’arrête jamais.' },
+    { id: 'c_loup', slot: 'compagnon', name: 'Loup gris', price: 1000, bonus: 4, emoji: '🐺', desc: 'Le gardien de ta meute.' },
+    { id: 'c_croco', slot: 'compagnon', name: 'Crocodile', price: 1200, bonus: 5, emoji: '🐊', desc: 'Une mâchoire qui fait fuir les excuses.' },
+    { id: 'c_ours', slot: 'compagnon', name: 'Ours des montagnes', price: 1400, bonus: 5, emoji: '🐻', desc: 'La force tranquille.' },
+    { id: 'c_aigle', slot: 'compagnon', name: 'Aigle royal', price: 1500, bonus: 6, emoji: '🦅', desc: 'Il voit ta progression de très haut.' },
+    { id: 'c_lion', slot: 'compagnon', name: 'Lion', price: 1800, bonus: 6, emoji: '🦁', desc: 'Le courage incarné.' },
+    { id: 'c_tigre', slot: 'compagnon', name: 'Tigre blanc', price: 2000, bonus: 7, emoji: '🐅', desc: 'Silencieux et redoutable.' },
+    { id: 'c_licorne', slot: 'compagnon', name: 'Licorne', price: 2500, bonus: 7, emoji: '🦄', desc: 'Rare comme une séance sans courbatures.' },
+    { id: 'c_dragon', slot: 'compagnon', name: 'Dragon', price: 5000, bonus: 10, emoji: '🐉', desc: 'La récompense ultime. Il crache du feu sur la paresse.' },
+  ];
+
+  const SLOTS = { arme: { name: 'Armes', icon: '⚔️' }, tenue: { name: 'Tenues', icon: '🛡️' }, familier: { name: 'Familiers', icon: '🦉' }, compagnon: { name: 'Compagnons', icon: '🐉' } };
+
+  const BOSSES = [
+    { id: 'golem', name: 'Golem de pierre', emoji: '🗿', lore: 'Un colosse de roche réveillé par ta paresse passée.' },
+    { id: 'hydre', name: 'Hydre des marais', emoji: '🐍', lore: 'Chaque excuse lui fait repousser une tête.' },
+    { id: 'troll', name: 'Troll des cavernes', emoji: '👹', lore: 'Il se nourrit des séances annulées.' },
+    { id: 'sorciere', name: 'Sorcière de brume', emoji: '🧙‍♀️', lore: 'Elle murmure « demain, tu commenceras demain ».' },
+    { id: 'minotaure', name: 'Minotaure', emoji: '🐂', lore: 'Il garde le labyrinthe de la procrastination.' },
+    { id: 'kraken', name: 'Kraken des abysses', emoji: '🦑', lore: 'Ses tentacules s’enroulent autour de ta motivation.' },
+    { id: 'wyverne', name: 'Wyverne des cimes', emoji: '🐲', lore: 'Elle plane au-dessus des sommets que tu vas gravir.' },
+    { id: 'liche', name: 'Seigneur liche', emoji: '💀', lore: 'Le maître des vieilles habitudes.' },
+    { id: 'scorpion', name: 'Scorpion des sables', emoji: '🦂', lore: 'Son dard injecte la fatigue.' },
+    { id: 'ogre', name: 'Ogre du canapé', emoji: '🧌', lore: 'Il voudrait juste que tu t’assoies « cinq minutes ».' },
+  ];
+
+  const DEFAULT_QUESTS = [
+    { id: 'q_eau', name: 'Boire 1,5 L d’eau', icon: '💧', xp: 15, stat: 'vitalite' },
+    { id: 'q_sucre', name: 'Pas de sucre ajouté', icon: '🍬', xp: 20, stat: 'discipline' },
+    { id: 'q_etire', name: '10 min d’étirements', icon: '🧘', xp: 15, stat: 'agilite' },
+    { id: 'q_marche', name: 'Marcher 30 minutes', icon: '🚶', xp: 15, stat: 'endurance' },
+    { id: 'q_sommeil', name: 'Dormir 7 h ou plus', icon: '😴', xp: 15, stat: 'vitalite' },
+    { id: 'q_legumes', name: 'Manger des légumes', icon: '🥦', xp: 10, stat: 'vitalite' },
+    { id: 'q_respire', name: '5 min de respiration calme', icon: '🌬️', xp: 10, stat: 'sagesse' },
+  ];
+
+  const QUEST_ICONS = ['💧', '🍬', '🧘', '🚶', '😴', '🥦', '🌬️', '🍎', '🥤', '📵', '☀️', '🚴', '🏊', '🧊', '🍵', '🥗', '🚭', '🛁', '📖', '🧠', '❤️', '🌙', '🏃', '⭐'];
+
+  // Cartes de motivation (textes originaux)
+  const CARD_CATS = {
+    confiance: { name: 'Confiance', icon: '🦁', color: '#f2a93b' },
+    force: { name: 'Force', icon: '🔥', color: '#e5484d' },
+    discipline: { name: 'Discipline', icon: '🛡️', color: '#3e63dd' },
+    sagesse: { name: 'Sagesse', icon: '🦉', color: '#8e4ec6' },
+    concentration: { name: 'Concentration', icon: '🎯', color: '#12a594' },
+  };
+  const R = { c: 'Commune', r: 'Rare', e: 'Épique', l: 'Légendaire' };
+  const CARDS = [
+    ['confiance', 'c', 'Premier pas', 'Tu n’as pas besoin d’être prête. Tu as juste besoin de commencer.'],
+    ['confiance', 'c', 'Miroir', 'Le corps que tu construis aujourd’hui te remerciera dans dix ans.'],
+    ['confiance', 'c', 'Ta voix', 'Parle-toi comme tu parlerais à ta meilleure amie.'],
+    ['confiance', 'r', 'Couronne', 'Tu as déjà survécu à cent pour cent de tes pires journées.'],
+    ['confiance', 'r', 'Étoile', 'Ne compare pas ton chapitre 1 au chapitre 20 de quelqu’un d’autre.'],
+    ['confiance', 'r', 'Bouclier d’or', 'Chaque série terminée est une promesse tenue envers toi-même.'],
+    ['confiance', 'e', 'Phénix', 'Tomber fait partie du chemin. Se relever, c’est toi.'],
+    ['confiance', 'l', 'Reine', 'Tu es l’héroïne de cette histoire. Écris-la avec fierté.'],
+    ['force', 'c', 'Étincelle', 'Une répétition de plus que la dernière fois, c’est une victoire.'],
+    ['force', 'c', 'Enclume', 'Le muscle se forge dans l’effort et grandit dans le repos.'],
+    ['force', 'c', 'Racines', 'Les arbres les plus solides poussent lentement.'],
+    ['force', 'r', 'Marteau', 'Ce qui est lourd aujourd’hui sera ton échauffement demain.'],
+    ['force', 'r', 'Montagne', 'Tu ne soulèves pas seulement du poids, tu soulèves tes limites.'],
+    ['force', 'r', 'Flamme', 'La difficulté n’est pas un mur, c’est une marche.'],
+    ['force', 'e', 'Titan', 'La force, c’est faire la série que tu avais envie de sauter.'],
+    ['force', 'l', 'Cœur de dragon', 'Il y a en toi un feu que personne ne peut éteindre.'],
+    ['discipline', 'c', 'Sablier', 'La motivation te fait commencer, l’habitude te fait continuer.'],
+    ['discipline', 'c', 'Chemin', 'Cinq minutes valent mieux que zéro minute.'],
+    ['discipline', 'c', 'Cloche', 'Fais-le même sans envie. Surtout sans envie.'],
+    ['discipline', 'r', 'Rempart', 'La régularité bat l’intensité, tous les jours de la semaine.'],
+    ['discipline', 'r', 'Serment', 'Ne casse pas la chaîne. Juste aujourd’hui.'],
+    ['discipline', 'r', 'Forge', 'Les petites actions répétées construisent les grandes victoires.'],
+    ['discipline', 'e', 'Armure', 'Tu ne t’élèves pas au niveau de tes objectifs, tu tombes au niveau de tes habitudes.'],
+    ['discipline', 'l', 'Ordre du lever', 'Celle qui se montre chaque jour finit par devenir inarrêtable.'],
+    ['sagesse', 'c', 'Source', 'Bois de l’eau, dors bien, respire. Le reste suivra.'],
+    ['sagesse', 'c', 'Lune', 'Le repos fait partie de l’entraînement, pas de l’abandon.'],
+    ['sagesse', 'c', 'Feuille', 'Écoute ton corps : il parle avant de crier.'],
+    ['sagesse', 'r', 'Grimoire', 'Le progrès n’est jamais une ligne droite, mais il avance toujours.'],
+    ['sagesse', 'r', 'Lanterne', 'Célèbre les petites victoires, elles font les grandes.'],
+    ['sagesse', 'r', 'Rivière', 'L’eau creuse la pierre non par la force, mais par la constance.'],
+    ['sagesse', 'e', 'Oracle', 'Prends soin de ton corps : c’est le seul endroit où tu vivras toujours.'],
+    ['sagesse', 'l', 'Arbre-monde', 'La patience est la plus puissante des magies.'],
+    ['concentration', 'c', 'Flèche', 'Une seule série à la fois. Une seule journée à la fois.'],
+    ['concentration', 'c', 'Souffle', 'Inspire en préparant, expire en poussant.'],
+    ['concentration', 'c', 'Cible', 'Concentre-toi sur ce que tu peux contrôler : ton effort.'],
+    ['concentration', 'r', 'Œil de faucon', 'Pose le téléphone, ressens le mouvement.'],
+    ['concentration', 'r', 'Boussole', 'Rappelle-toi pourquoi tu as commencé.'],
+    ['concentration', 'r', 'Lame calme', 'La qualité d’une répétition vaut plus que la quantité.'],
+    ['concentration', 'e', 'Méditation', 'L’instant présent est le seul où tu peux devenir plus forte.'],
+    ['concentration', 'l', 'Regard du dragon', 'Vois l’objectif, oublie le bruit, avance.'],
+  ].map((c, i) => ({ id: 'k' + i, cat: c[0], rarity: c[1], title: c[2], text: c[3] }));
+
+  const ZONES = ['Pectoraux', 'Épaules', 'Biceps', 'Triceps', 'Avant-bras', 'Dos', 'Lombaires', 'Abdos', 'Fessiers', 'Quadriceps', 'Ischios', 'Mollets', 'Nuque'];
+
+  window.GameData = { EXERCISES, CATS, STATS, CLASSES, ITEMS, SLOTS, BOSSES, DEFAULT_QUESTS, QUEST_ICONS, CARD_CATS, CARDS, RARITY: R, ZONES };
+})();
