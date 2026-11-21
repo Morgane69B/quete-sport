@@ -17,6 +17,17 @@
   const weekKey = (k) => { const d = parseK(k); const wd = (d.getDay() + 6) % 7; d.setDate(d.getDate() - wd); return dkey(d); };
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const exById = Object.fromEntries(D.EXERCISES.map((e) => [e.id, e]));
+  // Exercices créés par la joueuse
+  function hydrateCustom(c) {
+    const base = c.base && exById[c.base] && !exById[c.base].custom ? exById[c.base] : null;
+    return { ...c, custom: true, poses: base ? base.poses : null, eq: base ? base.eq : [], dur: base ? base.dur : 2.6 };
+  }
+  function loadCustom() { for (const c of (S && S.customEx) || []) exById[c.id] = hydrateCustom(c); }
+  const allEx = () => ((S && S.customEx) || []).filter((c) => !c.archived).map((c) => exById[c.id]).concat(D.EXERCISES);
+  function exFig(ex, anim) {
+    if (ex.poses) return Figure.render(ex, anim);
+    return `<div class="fig-ph">${ex.icon || D.CATS[ex.cat].icon}</div>`;
+  }
   const itemById = Object.fromEntries(D.ITEMS.map((i) => [i.id, i]));
   const cardById = Object.fromEntries(D.CARDS.map((c) => [c.id, c]));
   const clsById = Object.fromEntries(D.CLASSES.map((c) => [c.id, c]));
@@ -359,15 +370,16 @@
   function viewTrain() {
     const t = today();
     const q = UI.q.trim().toLowerCase();
-    let list = D.EXERCISES.filter((e) => (UI.cat === 'all' || (UI.cat === 'today' ? best(e.id, t) !== null : e.cat === UI.cat)) && (!q || e.name.toLowerCase().includes(q)));
+    let list = allEx().filter((e) => (UI.cat === 'all' || (UI.cat === 'today' ? best(e.id, t) !== null : e.cat === UI.cat)) && (!q || e.name.toLowerCase().includes(q)));
     let h = `<div class="page-h"><h2>Entraînement</h2><p class="muted">Une série à la fois : note-la, reviens plus tard pour la suivante.</p></div>`;
+    h += `<button class="btn ghost add-ex" data-a="new-ex">＋ Créer un exercice</button>`;
     h += `<input class="search" type="search" placeholder="Rechercher un exercice…" value="${esc(UI.q)}" data-in="q">`;
     h += `<div class="chips">${[['all', 'Tous'], ['today', 'Faits aujourd’hui'], ...Object.entries(D.CATS).map(([k, c]) => [k, c.icon + ' ' + c.name])].map(([k, l]) => `<button class="chipbtn ${UI.cat === k ? 'on' : ''}" data-a="cat" data-c="${k}">${l}</button>`).join('')}</div>`;
     h += '<div class="ex-list">';
     for (const ex of list) {
       const b = best(ex.id, t); const n = S.sets.filter((s) => s.ex === ex.id && s.d === t).length;
       const bonus = classMult(ex) > 1;
-      h += `<button class="ex-item" data-a="ex" data-id="${ex.id}"><div class="ex-thumb">${Figure.render(ex, false)}</div><div class="grow"><div class="ex-name">${esc(ex.name)}${bonus ? ' <span class="bonus-dot" title="Bonus de classe">★</span>' : ''}</div><div class="ex-sub">${D.CATS[ex.cat].icon} ${ex.unit === 'sec' ? 'En secondes' : 'Répétitions'} · ${ex.stats.map((s) => D.STATS[s].icon).join(' ')}</div>${n ? `<div class="ex-today">✓ ${n} série${n > 1 ? 's' : ''} · max ${b}${ex.unit === 'sec' ? ' s' : ''} ${pctPill(pct(b, best(ex.id, addDays(t, -1))), 'vs hier')}</div>` : ''}</div><span class="go">›</span></button>`;
+      h += `<button class="ex-item" data-a="ex" data-id="${ex.id}"><div class="ex-thumb">${exFig(ex, false)}</div><div class="grow"><div class="ex-name">${ex.custom ? '✏️ ' : ''}${esc(ex.name)}${bonus ? ' <span class="bonus-dot" title="Bonus de classe">★</span>' : ''}</div><div class="ex-sub">${D.CATS[ex.cat].icon} ${ex.unit === 'sec' ? 'En secondes' : 'Répétitions'} · ${ex.stats.map((s) => D.STATS[s].icon).join(' ')}</div>${n ? `<div class="ex-today">✓ ${n} série${n > 1 ? 's' : ''} · max ${b}${ex.unit === 'sec' ? ' s' : ''} ${pctPill(pct(b, best(ex.id, addDays(t, -1))), 'vs hier')}</div>` : ''}</div><span class="go">›</span></button>`;
     }
     if (!list.length) h += '<p class="muted center">Aucun exercice trouvé.</p>';
     return h + '</div>';
@@ -387,8 +399,8 @@
     const tile = (lbl, v, p) => `<div class="ptile"><small>${lbl}</small><b>${v == null ? '—' : v + u}</b>${p !== undefined ? (p === null ? '<em class="muted">—</em>' : `<em class="${p > 0 ? 'up' : p < 0 ? 'down' : ''}">${p > 0 ? '+' : ''}${p}%</em>`) : ''}</div>`;
     const preview = setXp(ex, dr.reps, showW ? dr.w : 0);
     openModal(`<div class="sheet"><div class="sheet-h"><button class="icon-btn" data-a="close" aria-label="Fermer">✕</button><div><div class="label">${D.CATS[ex.cat].icon} ${D.CATS[ex.cat].name}</div><h2>${esc(ex.name)}</h2></div></div>
-      <div class="sheet-body"><div class="ex-anim">${Figure.render(ex, true)}</div>
-      <p class="tip">💡 ${esc(ex.tip)}</p>
+      <div class="sheet-body"><div class="ex-anim">${exFig(ex, true)}</div>
+      ${ex.tip ? `<p class="tip">💡 ${esc(ex.tip)}</p>` : ''}
       <div class="chips static">${ex.stats.map((s) => `<span class="chipbtn">${D.STATS[s].icon} ${D.STATS[s].name}</span>`).join('')}${mult > 1 ? `<span class="chipbtn gold">★ Bonus de classe ×${mult}</span>` : ''}</div>
       <h3>Progression <small class="muted">(plus grosse série)</small></h3>
       <div class="ptiles">${tile('Aujourd’hui', bt)}${tile('Hier', by, pct(bt, by))}${tile('Il y a 7 jours', bw, pct(bt, bw))}</div>
@@ -400,8 +412,26 @@
         <button class="btn ghost small" data-a="rest-timer">⏱️ Minuteur de repos</button>
       </div>
       <h3>Séries du jour</h3>
+      ${ex.custom ? `<p class="center"><button class="btn ghost small del-ex" data-a="del-ex" data-id="${id}">🗑️ Supprimer cet exercice</button></p>` : ''}
       ${sets.length ? `<div class="setlist">${sets.map((s, i) => `<div class="set-row"><span class="set-n">${i + 1}</span><span class="grow"><b>${s.reps}${u}</b>${s.w ? ` × ${s.w} kg` : ''}<small class="muted"> · ${timeOf(s.ts)}</small></span><span class="xp-s">+${s.xp}</span><button class="icon-btn small" data-a="del-set" data-id="${s.id}" aria-label="Supprimer">🗑️</button></div>`).join('')}</div>` : '<p class="muted center small">Pas encore de série aujourd’hui.</p>'}
       </div></div>`, 'sheet-wrap');
+  }
+
+  let NX = null; // brouillon de nouvel exercice
+  function newExModal() {
+    NX = NX || { name: '', cat: 'corps', unit: 'reps', type: 'muscu', stats: ['force'], base: '', tip: '', icon: '💪' };
+    const types = [['muscu', '🏋️ Muscu'], ['cardio', '🏃 Cardio'], ['gainage', '🧱 Gainage'], ['souplesse', '🧘 Souplesse']];
+    const icons = ['💪', '🏋️', '🤸', '🧘', '🏃', '🦵', '🔥', '⚡', '🥊', '🚴', '🏊', '🪢', '🧗', '⭐'];
+    openModal(`<div class="modal-card"><div class="row-between"><h2>Nouvel exercice</h2><button class="icon-btn" data-a="close-nx">✕</button></div>
+      <label class="lbl">Nom</label><input class="input" maxlength="40" data-in="nx-name" value="${esc(NX.name)}" placeholder="Ex : Pompes déclinées, corde à sauter…">
+      <label class="lbl">Matériel</label><div class="chips wrap">${Object.entries(D.CATS).map(([k, c]) => `<button class="chipbtn ${NX.cat === k ? 'on' : ''}" data-a="nx" data-k="cat" data-v="${k}">${c.icon} ${c.name}</button>`).join('')}</div>
+      <label class="lbl">Je compte en…</label><div class="chips"><button class="chipbtn ${NX.unit === 'reps' ? 'on' : ''}" data-a="nx" data-k="unit" data-v="reps">Répétitions</button><button class="chipbtn ${NX.unit === 'sec' ? 'on' : ''}" data-a="nx" data-k="unit" data-v="sec">Secondes</button></div>
+      <label class="lbl">Type d’effort <small class="muted">(pour les bonus de classe)</small></label><div class="chips wrap">${types.map(([k, l]) => `<button class="chipbtn ${NX.type === k ? 'on' : ''}" data-a="nx" data-k="type" data-v="${k}">${l}</button>`).join('')}</div>
+      <label class="lbl">Statistiques travaillées <small class="muted">(2 max)</small></label><div class="chips wrap">${Object.entries(D.STATS).map(([k, st]) => `<button class="chipbtn ${NX.stats.includes(k) ? 'on' : ''}" data-a="nx-stat" data-v="${k}">${st.icon} ${st.name}</button>`).join('')}</div>
+      <label class="lbl">Animation</label><select class="input" data-in="nx-base"><option value="">Pas d’animation (icône)</option>${D.EXERCISES.map((e) => `<option value="${e.id}" ${NX.base === e.id ? 'selected' : ''}>Comme : ${esc(e.name)}</option>`).join('')}</select>
+      ${NX.base ? `<div class="nx-prev">${Figure.render(exById[NX.base], true)}</div>` : `<div class="icon-pick">${icons.map((ic) => `<button class="${NX.icon === ic ? 'on' : ''}" data-a="nx" data-k="icon" data-v="${ic}">${ic}</button>`).join('')}</div>`}
+      <label class="lbl">Conseil (facultatif)</label><textarea class="input" rows="2" maxlength="160" data-in="nx-tip" placeholder="Un rappel pour bien faire le mouvement">${esc(NX.tip)}</textarea>
+      <button class="btn primary" data-a="save-nx">Créer l’exercice</button></div>`);
   }
 
   // ---------- Écran Quêtes ----------
@@ -588,7 +618,7 @@
     const vals = days.map((k) => daySets(k).reduce((a, s) => a + damageOf(s), 0));
     const max = Math.max(10, ...vals);
     h += `<section class="card"><h3>Répétitions · 14 derniers jours</h3><div class="bars">${days.map((k, i) => `<div class="bcol${k === t ? ' today' : ''}"><span class="bv">${vals[i] || ''}</span><i style="height:${(vals[i] / max) * 100}%"></i><small>${parseK(k).toLocaleDateString('fr-FR', { weekday: 'narrow' })}</small></div>`).join('')}</div></section>`;
-    const recs = D.EXERCISES.map((e) => [e, record(e.id)]).filter((x) => x[1]);
+    const recs = Object.values(exById).map((e) => [e, record(e.id)]).filter((x) => x[1]);
     if (recs.length) h += `<section class="card"><h3>🏅 Records</h3>${recs.map(([e, r]) => `<div class="hist-row" data-a="ex" data-id="${e.id}"><span class="grow">${esc(e.name)}</span><b>${r.reps}${e.unit === 'sec' ? ' s' : ''}${r.w ? ` · ${r.w} kg` : ''}</b><small class="muted">${shortDay(r.d)}</small></div>`).join('')}</section>`;
     const byDay = {}; for (const s of S.sets) (byDay[s.d] = byDay[s.d] || []).push(s);
     const ks = Object.keys(byDay).sort().reverse().slice(0, 30);
@@ -614,7 +644,7 @@
     return `<div class="class-grid">${D.CLASSES.map((c) => `<button class="class-opt${cur === c.id ? ' on' : ''}" style="--cc:${c.color}" data-a="pick-class" data-id="${c.id}" ${editOnly && c.id !== cur ? 'disabled' : ''}><span class="co-ic">${c.icon}</span><b>${esc(c.goal)}</b><small>${esc(OB.d.g === 'f' || (S && S.hero.g === 'f') ? c.f : c.m)}</small></button>`).join('')}</div>`;
   }
   function goalFields(d) {
-    const opts = D.EXERCISES.filter((e) => e.cat !== 'souplesse' || e.unit === 'reps').concat(D.EXERCISES.filter((e) => e.cat === 'souplesse' && e.unit === 'sec'));
+    const opts = allEx();
     return `<div class="chips"><button class="chipbtn ${d.goalType === 'ex' ? 'on' : ''}" data-a="gtype" data-v="ex">💪 Sur un exercice</button><button class="chipbtn ${d.goalType === 'free' ? 'on' : ''}" data-a="gtype" data-v="free">✍️ Autre objectif</button></div>
       ${d.goalType === 'ex' ? `<label class="lbl">Exercice</label><select class="input" data-in="goalEx">${opts.map((e) => `<option value="${e.id}" ${d.goalEx === e.id ? 'selected' : ''}>${esc(e.name)}</option>`).join('')}</select><label class="lbl">${exById[d.goalEx].unit === 'sec' ? 'Secondes à tenir' : 'Répétitions'} en une seule série</label><input class="input" inputmode="numeric" data-in="goalTarget" value="${d.goalTarget}"><p class="muted small">Validé automatiquement dès que tu réussis cette série.</p>`
         : `<label class="lbl">Ton objectif</label><input class="input" maxlength="60" data-in="goalText" value="${esc(d.goalText)}" placeholder="Ex : −3 kg, toucher mes pieds, courir 5 km…"><p class="muted small">Tu le valideras toi-même quand tu l’auras atteint.</p>`}`;
@@ -737,6 +767,24 @@
       const btn = el;
       if (btn.dataset.confirm !== '1') { btn.dataset.confirm = '1'; btn.textContent = 'Suppr. ?'; btn.classList.add('warn'); setTimeout(() => { if (btn.isConnected) { btn.dataset.confirm = ''; btn.textContent = '🗑️'; btn.classList.remove('warn'); } }, 2500); return; }
       deleteSet(el.dataset.id); const id = UI.sheet; const sc = $modal.querySelector('.sheet-body').scrollTop; exSheet(id); $modal.querySelector('.sheet-body').scrollTop = sc; rerender2();
+    },
+    'new-ex': () => { NX = null; newExModal(); },
+    'close-nx': () => { NX = null; closeModal(); },
+    nx: (el) => { NX[el.dataset.k] = el.dataset.v; if (el.dataset.k === 'cat' && el.dataset.v === 'souplesse') NX.type = 'souplesse'; newExModal(); },
+    'nx-stat': (el) => { const v = el.dataset.v; if (NX.stats.includes(v)) { if (NX.stats.length > 1) NX.stats = NX.stats.filter((x) => x !== v); } else NX.stats = [...NX.stats.slice(-1), v]; newExModal(); },
+    'save-nx': () => {
+      const name = NX.name.trim(); if (!name) { toast('Donne un nom à ton exercice'); return; }
+      if (allEx().some((e) => e.name.toLowerCase() === name.toLowerCase())) { toast('Cet exercice existe déjà'); return; }
+      const c = { id: 'c_' + uid(), name, cat: NX.cat, unit: NX.unit, tags: [NX.type], stats: NX.stats.slice(0, 2), base: NX.base, tip: NX.tip.trim(), icon: NX.icon };
+      S.customEx = S.customEx || []; S.customEx.push(c); exById[c.id] = hydrateCustom(c); save();
+      NX = null; closeModal(); UI.tab = 'train'; UI.cat = 'all'; UI.q = ''; render(); toast(`✨ ${esc(name)} ajouté`); exSheet(c.id);
+    },
+    'del-ex': (el) => {
+      if (el.dataset.confirm !== '1') { el.dataset.confirm = '1'; el.textContent = 'Toucher encore pour confirmer'; el.classList.add('warn'); return; }
+      const id = el.dataset.id; const c = S.customEx.find((x) => x.id === id);
+      if (S.sets.some((x) => x.ex === id)) c.archived = true; // garde l'historique
+      else { S.customEx = S.customEx.filter((x) => x.id !== id); delete exById[id]; }
+      save(); closeModal(); render(); toast('Exercice supprimé');
     },
     'rest-timer': () => { closeModal(); UI.tab = 'more'; UI.sub = 'timer'; T.mode = 'timer'; if (!T.running) { T.dur = 60; T.left = 60; } render(); },
     quest: (el) => { toggleQuest(el.dataset.id); rerender(); },
@@ -875,6 +923,8 @@
       case 'w': drafts[UI.sheet].w = Math.max(0, parseFloat(v.replace(',', '.')) || 0); updatePreview(); break;
       case 'ob-name': { const had = !!OB.d.name.trim(); OB.d.name = v; if (had !== !!v.trim()) { const b = document.querySelector('[data-a=ob-next]'); if (b) b.disabled = !v.trim(); } } break;
       case 'ob-why': OB.d.why = v; break;
+      case 'nx-name': NX.name = v; break;
+      case 'nx-tip': NX.tip = v; break;
       case 'goalText': tgtGoal.goalText = v; if (!S) { const b = document.querySelector('[data-a=ob-next]'); if (b) b.disabled = !v.trim(); } break;
       case 'goalTarget': tgtGoal.goalTarget = parseInt(v, 10) || 1; break;
       case 'sname': S.hero.name = v.trim() || S.hero.name; save(); break;
@@ -886,6 +936,7 @@
     const el = e.target; const k = el.dataset && el.dataset.in;
     if (k === 'goalEx') { const tgt = CC && $modal.classList.contains('open') ? CC : OB.d; tgt.goalEx = el.value; CC && $modal.classList.contains('open') ? changeClassModal(CC.editOnly) : render(); }
     if (k === 'sname') rerender();
+    if (k === 'nx-base') { NX.base = el.value; newExModal(); }
   });
   function updatePreview() {
     const id = UI.sheet; const ex = exById[id]; const d = drafts[id]; const el = $modal.querySelector('.xp-prev');
@@ -902,7 +953,7 @@
   setInterval(onResume, 60000);
 
   // Démarrage
-  if (S) { dailyChecks(); checkBoss(); save(); }
+  if (S) { loadCustom(); dailyChecks(); checkBoss(); save(); }
   render();
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
